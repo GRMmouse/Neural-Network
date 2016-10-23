@@ -1,5 +1,6 @@
-// Global Structure for connectivity
-
+// Graph Class
+// The graph class represent a directed graph structure G = {V, E}
+// with weight place on each edge
 var Graph = function(){
   this.vertices = new Map();
   this.edges = new Map();
@@ -11,10 +12,8 @@ Graph.prototype = {
     return (this.vertices.has(v.id));
   },
 
-  isConnected: function(v1, v2){
-    var i1 = v1.id;
-    var i2 = v2.id;
-    return this.edges.has(i1.toString()+" "+i2.toString());
+  isConnected: function(from, to){
+    return this.edges.has(this.makeKey(from, to));
   },
 
   addVertex: function(v){
@@ -31,34 +30,47 @@ Graph.prototype = {
     this.vertices.delete(v.id);
   },
 
-  addEdge: function(v1, v2, w){
-    if (this.isConnected(v1, v2)){
+  makeKey: function(from, to){
+    var i1 = from.id;
+    var i2 = to.id;
+    return i1.toString()+" "+i2.toString()
+  },
+
+  addEdge: function(from, to, w){
+    if (this.isConnected(from, to)){
       console.log("Edge in graph already.\n");
       return;
     }
-    var i1 = v1.id;
-    var i2 = v2.id;
-    this.edges.set(i1.toString()+" "+i2.toString(), w);
+    this.edges.set(this.makeKey(from, to), w);
   },
 
-  removeEdge: function(v1, v2){
-    if (!this.isConnected(v1, v2)){
+  removeEdge: function(from, to){
+    if (!this.isConnected(from, to)){
       console.log("Edge not in graph.\n");
       return;
     }
-    var i1 = v1.id;
-    var i2 = v2.id;
-    this.edges.delete(i1.toString()+" "+i2.toString());
+    this.edges.delete(this.makeKey(from, to));
+  },
+
+  getWeight: function(from, to){
+    if (!this.isConnected(from, to)){
+      console.log("Edge not in graph.\n");
+      return 0;
+    }
+    return this.edges.get(this.makeKey(from, to));
   }
 }
 
-var G = new Graph();
 // Neuron class
-var Neuron = function (type, x, y){
+// A neuron is the basic firing cell of the 
+var Neuron = function (type, x, y, vt){
   this.type = type;
   this.x = x;
   this.y = y;
+  this.vt = vt;
+  this.val = 0;
   this.id = 0;
+  this.output = new Map();
   G.addVertex(this);
 };
 
@@ -66,22 +78,27 @@ Neuron.prototype = {
   // Methods
 }
 
-var n1 = new Neuron("abc", 0, 0);
-var n2 = new Neuron("def", 0, 0);
-G.removeVertex(n1);
-G.addVertex(n1);
-G.addEdge(n1, n2, 42);
-console.log(G.isConnected(n1, n2));
-G.addEdge(n1, n2, 42);
-G.removeEdge(n1, n2);
-console.log(G.isConnected(n1, n2));
-
-
 // Intialize Canvas
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 var cw = canvas.width = 800;
 var ch = canvas.height = 600;
+
+// Intialize neural network
+var G = new Graph();
+
+// Tests for Graph
+// var N1 = new Neuron("input", 0, 0, 10);
+// var N2 = new Neuron("output", 0, 0, 10);
+// console.log(G.isConnected(N1, N2));
+// G.addEdge(N1, N2, 42);
+// G.addEdge(N1, N2, 42);
+// G.removeVertex(N1);
+// G.addVertex(N1);
+// console.log(G.isConnected(N1, N2));
+// G.addEdge(N1, N2, 42);
+// console.log(G.isConnected(N1, N2));
+// console.log(G.getWeight(N1, N2));
 
 
 
