@@ -1,66 +1,80 @@
 // Global Structure for connectivity
-var G = {
-  counter: 0,
-  vertices: new Map(),
-  edges: new Map(),
 
+var Graph = function(){
+  this.vertices = new Map();
+  this.edges = new Map();
+  this.counter =  0;
+}
+
+Graph.prototype = {
   isValidVertex: function(v){
-    return (vertices.has(v.id));
+    return (this.vertices.has(v.id));
   },
 
   isConnected: function(v1, v2){
     var i1 = v1.id;
     var i2 = v2.id;
-    return edges.has([i1, i2]);
+    return this.edges.has(i1.toString()+" "+i2.toString());
   },
 
   addVertex: function(v){
-    v.id = counter;
-    counter++;
-    vertices.set(v.id, v);
+    v.id = this.counter;
+    this.counter++;
+    this.vertices.set(v.id, v);
   },
 
   removeVertex: function(v){
-    if (!isValidVertex(v)){
+    if (!this.isValidVertex(v)){
       console.log("Vertex not in graph.\n");
       return;
     }
-    vertices.delete(v.id);
+    this.vertices.delete(v.id);
   },
 
-  addEdge: function(v1, v2){
-    if (isConnected(v1, v2)){
+  addEdge: function(v1, v2, w){
+    if (this.isConnected(v1, v2)){
       console.log("Edge in graph already.\n");
       return;
     }
     var i1 = v1.id;
     var i2 = v2.id;
-    edges.set([i1, i2], [v1, v2]);
+    this.edges.set(i1.toString()+" "+i2.toString(), w);
   },
 
   removeEdge: function(v1, v2){
-    if (!isConnected(v1, v2)){
+    if (!this.isConnected(v1, v2)){
       console.log("Edge not in graph.\n");
       return;
     }
     var i1 = v1.id;
     var i2 = v2.id;
-    edges.delete([i1, i2]);
+    this.edges.delete(i1.toString()+" "+i2.toString());
   }
 }
 
+var G = new Graph();
 // Neuron class
 var Neuron = function (type, x, y){
   this.type = type;
   this.x = x;
   this.y = y;
   this.id = 0;
-  this.weight = new Map();
+  G.addVertex(this);
 };
 
 Neuron.prototype = {
-
+  // Methods
 }
+
+var n1 = new Neuron("abc", 0, 0);
+var n2 = new Neuron("def", 0, 0);
+G.removeVertex(n1);
+G.addVertex(n1);
+G.addEdge(n1, n2, 42);
+console.log(G.isConnected(n1, n2));
+G.addEdge(n1, n2, 42);
+G.removeEdge(n1, n2);
+console.log(G.isConnected(n1, n2));
 
 
 // Intialize Canvas
