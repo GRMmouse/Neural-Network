@@ -63,11 +63,11 @@ Graph.prototype = {
 
 // Neuron class
 // A neuron is the basic firing cell of the 
-var Neuron = function (type, x, y, vt){
+var Neuron = function (type, x, y, vth){
   this.type = type;
   this.x = x;
   this.y = y;
-  this.vt = vt;
+  this.vth = vth;
   this.val = 0;
   this.id = 0;
   this.output = new Map();
@@ -76,6 +76,9 @@ var Neuron = function (type, x, y, vt){
 
 Neuron.prototype = {
   // Methods
+  connectTo: function(to){
+    G.addEdge(this, to);
+  }
 }
 
 // Intialize Canvas
