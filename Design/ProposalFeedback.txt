@@ -1,0 +1,2 @@
+
+Cool project, appears to be pitched at the right level.  I think this has the potential to be very useful.  With respect to starting at action potentials - be careful you don't start off assuming so little knowledge that you can't move forward with the implementation of more complex neural networks.  Also, as a suggestion for the homework, it might be fun to have students design a network to accomplish a particular task (without telling them how to do it).
