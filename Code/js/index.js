@@ -1,3 +1,6 @@
+// Global Variables
+var NEURON_RADIUS = 30;
+
 // Graph Class
 // The graph class represent a directed graph structure G = {V, E}
 // with weight place on each edge
@@ -76,8 +79,72 @@ var Neuron = function (type, x, y, vth){
 
 Neuron.prototype = {
   // Methods
-  connectTo: function(to){
-    G.addEdge(this, to);
+  connectTo: function(to, w){
+    G.addEdge(this, to, w);
+    if (!this.output.has(to.id)){
+      this.output.set(to.id, to);
+      return;
+    }
+    
+  },
+
+  removeConnection: function(to){
+    G.removeEdge(this, to);
+    if (this.output.has(to.id)){
+      this.output.delete(to.id);
+      return;
+    }
+  },
+
+  isFiring: function(){
+    return (this.val >= this.vth);
+  },
+
+  fire: function(){
+    // Currently swith model, consider sigmoid later
+    if (this.isFiring()){
+      for (var to of this.output.values()) {
+        to.val += G.getWeight(this, to);
+      }
+    }
+    return;
+  },
+
+  clear: function(){
+    this.val = 0;
+  },
+
+  getWeight: function(to){
+    return G.getWeight(this, to);
+  },
+
+  draw: function(ctx){
+    // Draw a circle
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, NEURON_RADIUS, 0,2*Math.PI);
+    var old = ctx.fillStyle;
+    if (this.isFiring()) {
+      console.log(this.val);
+      ctx.fillStyle = 'yellow';
+      ctx.fill();
+    }
+    ctx.stroke();
+    ctx.fillStyle = old;
+
+    // Draw Vth
+    ctx.font = "20px Arial";
+    ctx.textAlign="center";
+    ctx.fillText(this.vth.toString(),this.x,this.y+5);
+
+    // Draw connections and edge weights
+    for (var to of this.output.values()) {
+        ctx.moveTo(this.x+NEURON_RADIUS, this.y);
+        ctx.lineTo(to.x-NEURON_RADIUS, to.y);
+        ctx.stroke();
+        var w = this.getWeight(to);
+        ctx.fillText(w.toString(),(this.x+to.x)/2,(this.y+to.y)/2);
+    }
+    return;
   }
 }
 
@@ -91,17 +158,33 @@ var ch = canvas.height = 600;
 var G = new Graph();
 
 // Tests for Graph
-// var N1 = new Neuron("input", 0, 0, 10);
-// var N2 = new Neuron("output", 0, 0, 10);
-// console.log(G.isConnected(N1, N2));
-// G.addEdge(N1, N2, 42);
-// G.addEdge(N1, N2, 42);
-// G.removeVertex(N1);
-// G.addVertex(N1);
-// console.log(G.isConnected(N1, N2));
-// G.addEdge(N1, N2, 42);
-// console.log(G.isConnected(N1, N2));
-// console.log(G.getWeight(N1, N2));
+var N1 = new Neuron("input", 200, 400, 10);
+var N2 = new Neuron("output", 400, 300, 10);
+var N3 = new Neuron("output", 400, 500, 10);
+N1.connectTo(N2, 42);
+N1.connectTo(N3, 42);
 
+// Tests for Neuron
+for (var n of G.vertices.values()){
+  n.draw(ctx);
+}
+N1.val = 100;
+for (var n of G.vertices.values()){
+  n.draw(ctx);
+}
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+var s = new Set();
+for (var n of G.vertices.values()){
+  if (n.isFiring()) s.add(n)
+}
+for (let item of s){
+  item.fire();
+  item.clear();
+}
+console.log(N1.val);
+console.log(N2.val);
+for (var n of G.vertices.values()){
+  n.draw(ctx);
+}
 
 
