@@ -104,6 +104,10 @@ Neuron.prototype = {
     return (this.val >= this.vth);
   },
 
+  isAffected: function(){
+    return (this.val != 0);
+  },
+
   fire: function(){
     // Currently swith model, consider sigmoid later
     if (this.isFiring()){
@@ -175,32 +179,46 @@ Neuron.prototype = {
   }
 }
 
-// Intialize Canvas
-var canvas = document.getElementById("canvas");
-var ctx = canvas.getContext("2d");
-var cw = canvas.width = 800;
-var ch = canvas.height = 600;
-
-// Intialize neural network
-var G = new Graph();
-
-// Intialize buttons
-document.getElementById("nextButton").onclick = function(){
+var iter = function(){
   var s = new Set();
   for (n of G.vertices.values()){
-    if (n.isFiring()) s.add(n)
+    if (n.isAffected()) s.add(n)
   }
   for (let item of s){
     item.fire();
   }
-  s.clear();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   for (n of G.vertices.values()){
     n.draw(ctx);
   }
 }
 
+// Intialize Canvas
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+var cw = canvas.width = 800;
+var ch = canvas.height = 600;
+
+
+
+// Intialize buttons
+document.getElementById("nextButton").onclick = iter;
+
+// // KeyPress Events
+var onKeyPress = function(evt){
+  switch(evt.keyCode) {
+    case 78: // n
+      iter();
+      break;
+    default:
+      console.log(evt.keyCode + "Pressed");
+      break;
+  }
+};
+window.addEventListener('keydown',onKeyPress,false);
+
 // Tests for Graph
+var G = new Graph();
 var N1 = new Neuron("input", 200, 300, 10, G);
 var N2 = new Neuron("connect", 400, 200, 10, G);
 var N3 = new Neuron("connect", 400, 400, 10, G);
