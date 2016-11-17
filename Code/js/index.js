@@ -1,5 +1,8 @@
 // Global Variables
 var NEURON_RADIUS = 30;
+var NEURON_VDROP = -15;
+var ARROW_LEN = 10;
+var ARROW_ANGLE = Math.PI/7;
 
 // Graph Class
 // The graph class represent a directed graph structure G = {V, E}
@@ -66,7 +69,7 @@ Graph.prototype = {
 
 // Neuron class
 // A neuron is the basic firing cell of the 
-var Neuron = function (type, x, y, vth){
+var Neuron = function (type, x, y, vth, G){
   this.type = type;
   this.x = x;
   this.y = y;
@@ -74,13 +77,14 @@ var Neuron = function (type, x, y, vth){
   this.val = 0;
   this.id = 0;
   this.output = new Map();
-  G.addVertex(this);
+  this.G = G;
+  this.G.addVertex(this);
 };
 
 Neuron.prototype = {
   // Methods
   connectTo: function(to, w){
-    G.addEdge(this, to, w);
+    this.G.addEdge(this, to, w);
     if (!this.output.has(to.id)){
       this.output.set(to.id, to);
       return;
@@ -89,7 +93,7 @@ Neuron.prototype = {
   },
 
   removeConnection: function(to){
-    G.removeEdge(this, to);
+    this.G.removeEdge(this, to);
     if (this.output.has(to.id)){
       this.output.delete(to.id);
       return;
@@ -107,15 +111,12 @@ Neuron.prototype = {
         to.val += G.getWeight(this, to);
       }
     }
+    this.val = 0;
     return;
   },
 
-  clear: function(){
-    this.val = 0;
-  },
-
   getWeight: function(to){
-    return G.getWeight(this, to);
+    return this.G.getWeight(this, to);
   },
 
   draw: function(ctx){
@@ -124,11 +125,11 @@ Neuron.prototype = {
     ctx.arc(this.x, this.y, NEURON_RADIUS, 0,2*Math.PI);
     var old = ctx.fillStyle;
     if (this.isFiring()) {
-      console.log(this.val);
       ctx.fillStyle = 'yellow';
       ctx.fill();
     }
     ctx.stroke();
+    ctx.closePath()
     ctx.fillStyle = old;
 
     // Draw Vth
@@ -136,13 +137,39 @@ Neuron.prototype = {
     ctx.textAlign="center";
     ctx.fillText(this.vth.toString(),this.x,this.y+5);
 
-    // Draw connections and edge weights
     for (var to of this.output.values()) {
-        ctx.moveTo(this.x+NEURON_RADIUS, this.y);
-        ctx.lineTo(to.x-NEURON_RADIUS, to.y);
-        ctx.stroke();
-        var w = this.getWeight(to);
-        ctx.fillText(w.toString(),(this.x+to.x)/2,(this.y+to.y)/2);
+      // draw arrows
+      ctx.beginPath();
+      var angle = Math.atan2(to.y-this.y,to.x-this.x);
+      var fromX = this.x+NEURON_RADIUS*Math.cos(angle);
+      var fromY = this.y+NEURON_RADIUS*Math.sin(angle);
+      var toX = to.x-NEURON_RADIUS*Math.cos(angle);
+      var toY = to.y-NEURON_RADIUS*Math.sin(angle);
+      var oldStyle = ctx.strokeStyle;
+      var oldWidth = ctx.lineWidth;
+
+      ctx.moveTo(fromX, fromY);
+      ctx.lineTo(toX, toY);
+      
+      
+      var w = this.getWeight(to);   
+      if (w < 0){
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 5;
+        ctx.moveTo(toX-ARROW_LEN*Math.cos(angle-Math.PI/2), toY-ARROW_LEN*Math.sin(angle-Math.PI/2))
+        ctx.lineTo(toX-ARROW_LEN*Math.cos(angle+Math.PI/2), toY-ARROW_LEN*Math.sin(angle+Math.PI/2))
+      }else{
+        ctx.strokeStyle = "green";
+        ctx.lineWidth = 3;
+        ctx.lineTo(toX-ARROW_LEN*Math.cos(angle+ARROW_ANGLE),toY-ARROW_LEN*Math.sin(angle+ARROW_ANGLE));
+        ctx.moveTo(toX, toY);
+        ctx.lineTo(toX-ARROW_LEN*Math.cos(angle-ARROW_ANGLE),toY-ARROW_LEN*Math.sin(angle-ARROW_ANGLE));
+      }   
+      ctx.stroke();
+      ctx.strokeStyle = oldStyle;
+      ctx.lineWidth = oldWidth;
+      ctx.fillText(w.toString(),(this.x+to.x)/2,(this.y+to.y)/2);
+      ctx.closePath()   
     }
     return;
   }
@@ -157,34 +184,35 @@ var ch = canvas.height = 600;
 // Intialize neural network
 var G = new Graph();
 
-// Tests for Graph
-var N1 = new Neuron("input", 200, 400, 10);
-var N2 = new Neuron("output", 400, 300, 10);
-var N3 = new Neuron("output", 400, 500, 10);
-N1.connectTo(N2, 42);
-N1.connectTo(N3, 42);
-
-// Tests for Neuron
-for (var n of G.vertices.values()){
-  n.draw(ctx);
+// Intialize buttons
+document.getElementById("nextButton").onclick = function(){
+  var s = new Set();
+  for (n of G.vertices.values()){
+    if (n.isFiring()) s.add(n)
+  }
+  for (let item of s){
+    item.fire();
+  }
+  s.clear();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (n of G.vertices.values()){
+    n.draw(ctx);
+  }
 }
+
+// Tests for Graph
+var N1 = new Neuron("input", 200, 300, 10, G);
+var N2 = new Neuron("connect", 400, 200, 10, G);
+var N3 = new Neuron("connect", 400, 400, 10, G);
+var N4 = new Neuron("output", 600,300, 10, G);
+
+N1.connectTo(N2, 20);
+N2.connectTo(N3, 20);
+N3.connectTo(N1, +20);
+N2.connectTo(N4, 50);
+N4.connectTo(N3, -50);
+//N4.connectTo(N1, -200);
 N1.val = 100;
 for (var n of G.vertices.values()){
   n.draw(ctx);
 }
-ctx.clearRect(0, 0, canvas.width, canvas.height);
-var s = new Set();
-for (var n of G.vertices.values()){
-  if (n.isFiring()) s.add(n)
-}
-for (let item of s){
-  item.fire();
-  item.clear();
-}
-console.log(N1.val);
-console.log(N2.val);
-for (var n of G.vertices.values()){
-  n.draw(ctx);
-}
-
-
