@@ -368,7 +368,7 @@ var onMouseRelease = function(evt){
       for (var n of G.vertices.values()){        
         if ((x-n.x)*(x-n.x)+(y-n.y)*(y-n.y) <= NEURON_RADIUS*NEURON_RADIUS){
           // Different Neuron, remove edge
-          FOCUS.removeConnection(n);
+          n.removeConnection(FOCUS);
           FOCUS = null;
           break;
         }
