@@ -267,6 +267,14 @@ var next = function(){
   }
   redrawAll();
 }
+
+// Clear Button
+var clearAll = function(){
+  G = new Graph();
+  MODE = "Add";
+  redrawAll();
+}
+
 // KeyPress Events
 var onKeyPress = function(evt){
   switch(evt.keyCode) {
@@ -414,6 +422,7 @@ var G = new Graph();
 
 // Bind
 document.getElementById("nextButton").onclick = next;
+document.getElementById("clearButton").onclick = clearAll;
 canvas.addEventListener("mousedown", onMousePress, false);
 canvas.addEventListener("mouseup", onMouseRelease, false);
 window.addEventListener('keydown',onKeyPress,false);
