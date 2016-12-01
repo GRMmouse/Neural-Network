@@ -3,6 +3,9 @@ var NEURON_RADIUS = 30;
 var NEURON_VDROP = -15;
 var ARROW_LEN = 10;
 var ARROW_ANGLE = Math.PI/7;
+var MARGIN_WIDTH = 30;
+var MODE = "Navigation"; // Navigation, Add, Delete, Edit, Trigger
+var FOCUS = null;
 
 // Graph Class
 // The graph class represent a directed graph structure G = {V, E}
@@ -52,7 +55,6 @@ Graph.prototype = {
 
   removeEdge: function(from, to){
     if (!this.isConnected(from, to)){
-      console.log("Edge not in graph.\n");
       return;
     }
     this.edges.delete(this.makeKey(from, to));
@@ -69,11 +71,11 @@ Graph.prototype = {
 
 // Neuron class
 // A neuron is the basic firing cell of the 
-var Neuron = function (type, x, y, vth, G){
+var Neuron = function (type, x, y, G){
   this.type = type;
   this.x = x;
   this.y = y;
-  this.vth = vth;
+  this.vth = parseInt(prompt("Please enter a threshold voltage:", '10'));
   this.val = 0;
   this.id = 0;
   this.output = new Map();
@@ -83,13 +85,18 @@ var Neuron = function (type, x, y, vth, G){
 
 Neuron.prototype = {
   // Methods
-  connectTo: function(to, w){
-    this.G.addEdge(this, to, w);
+  connectTo: function(to){
+    var w = prompt("Please enter a weight:", '40');
+    this.G.addEdge(this, to, parseInt(w));
     if (!this.output.has(to.id)){
       this.output.set(to.id, to);
       return;
     }
     
+  },
+
+  isConnected: function(to){
+    return this.G.isConnected(this, to);
   },
 
   removeConnection: function(to){
@@ -98,6 +105,25 @@ Neuron.prototype = {
       this.output.delete(to.id);
       return;
     }
+  },
+
+  updateConnection: function(to){
+    if (!this.isConnected(to)){
+      console.log("Failed to update. Edge does not exist.")
+      return;
+    }
+    // Easiest way is to remove and add a new edge
+    this.removeConnection(to);
+    this.connectTo(to);
+  },
+
+  delete: function(){
+    for (n of this.G.vertices.values()){
+      // Remove all vertices
+      n.removeConnection(this);
+      this.removeConnection(n);
+    }
+    this.G.removeVertex(this);
   },
 
   isFiring: function(){
@@ -109,18 +135,29 @@ Neuron.prototype = {
   },
 
   fire: function(){
-    // Currently swith model, consider sigmoid later
-    if (this.isFiring()){
-      for (var to of this.output.values()) {
-        to.val += G.getWeight(this, to);
-      }
+    // Currently switch model, consider sigmoid later
+    for (var to of this.output.values()) {
+      to.val += G.getWeight(this, to);
     }
-    this.val = 0;
     return;
+  },
+
+  clear: function(){
+    this.val = 0;
   },
 
   getWeight: function(to){
     return this.G.getWeight(this, to);
+  },
+
+  updateVal: function(){
+    this.val = parseInt(prompt("Please enter an activation voltage:", '100'));
+    return;
+  },
+
+  updateThreshold: function(){
+    this.vth = parseInt(prompt("Please enter a threshold voltage:", '10'));
+    return;
   },
 
   draw: function(ctx){
@@ -179,58 +216,206 @@ Neuron.prototype = {
   }
 }
 
-var iter = function(){
-  var s = new Set();
-  for (n of G.vertices.values()){
-    if (n.isAffected()) s.add(n)
-  }
-  for (let item of s){
-    item.fire();
-  }
+/* View */
+var redrawAll = function(){
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   for (n of G.vertices.values()){
     n.draw(ctx);
   }
+  // Draw a blue circle around focus
+  var old = ctx.strokeStyle;
+  var oldFill = ctx.fillStyle;
+  if (FOCUS != null){
+    ctx.beginPath();
+    ctx.arc(FOCUS.x, FOCUS.y, NEURON_RADIUS, 0,2*Math.PI);
+    var oldWidth = ctx.lineWidth;
+    ctx.strokeStyle = 'blue';
+    ctx.lineWidth = 5;
+    ctx.stroke();
+    ctx.lineWidth = oldWidth;
+  }
+
+  // Display the current mode
+  var oldFont = ctx.font;
+  ctx.font = "20px Arial";
+  ctx.fillStyle = 'blue';
+  ctx.textAlign = 'left';
+  ctx.fillText("Mode: "+MODE, MARGIN_WIDTH, MARGIN_WIDTH);
+  ctx.strokeStyle = old;
+  ctx.fillStyle = oldFill;
+  ctx.font = oldFont;
+  ctx.closePath()
+};
+
+
+/* Control */
+// Next Button
+var next = function(){
+  var s = new Set();
+  var f = new Set();
+  for (n of G.vertices.values()){
+    if (n.isAffected()) s.add(n);
+    if (n.isFiring()) f.add(n)
+  }
+
+  for (let item of s){
+    item.clear();
+  }
+
+  for (let item of f){
+    item.fire();
+  }
+  redrawAll();
+}
+// KeyPress Events
+var onKeyPress = function(evt){
+  switch(evt.keyCode) {
+    case 32: // c
+      MODE = "Navigation";
+      console.log("Navigation Mode");
+      break;
+    case 82: // r
+      MODE = "Delete";
+      console.log("Remove Mode");
+      break;
+    case 65: // a
+      MODE = "Add";
+      console.log("Add Mode");
+      break;
+    case 69: // e
+      MODE = "Edit";
+      console.log("Edit Mode");
+      break;
+    case 84: // t
+      MODE = "Trigger";
+      console.log("Trigger Mode");
+      break;
+    case 78: // n
+      next();
+      break;
+    default:
+      console.log(evt.keyCode + " Pressed");
+      break;
+  }
+  FOCUS = null;
+  redrawAll();
+};
+
+var onMousePress = function(evt){
+  var x = evt.pageX - canvas.offsetLeft;
+  var y = evt.pageY - canvas.offsetTop;
+
+  switch(MODE){
+    case "Navigation":
+      return;
+    case "Add":
+      for (var n of G.vertices.values()){
+        if ((x-n.x)*(x-n.x)+(y-n.y)*(y-n.y) <= 4*NEURON_RADIUS*NEURON_RADIUS){
+          if ((x-n.x)*(x-n.x)+(y-n.y)*(y-n.y) <= NEURON_RADIUS*NEURON_RADIUS){
+            FOCUS = n;
+          }
+          redrawAll();
+          return; // Too near for adding Neuron
+        }
+      }
+      var N = new Neuron("connect", x, y, G);
+      FOCUS = N;
+      break;
+    case "Edit":
+    case "Trigger":
+    case "Delete":
+      for (var n of G.vertices.values()){
+        if ((x-n.x)*(x-n.x)+(y-n.y)*(y-n.y) <= NEURON_RADIUS*NEURON_RADIUS){
+          FOCUS = n;
+          redrawAll();
+          return;
+        }
+      }
+      FOCUS = null;
+      break;
+    default:
+      console.log("Unknown Mode:" + MODE)
+  }
+  redrawAll();
 }
 
+var onMouseRelease = function(evt){
+  if (FOCUS == null) return;
+  var x = evt.pageX - canvas.offsetLeft;
+  var y = evt.pageY - canvas.offsetTop;
+  switch(MODE){
+    case "Navigation":
+      return;
+    case "Add":
+      if ((x-FOCUS.x)*(x-FOCUS.x)+(y-FOCUS.y)*(y-FOCUS.y) <= NEURON_RADIUS*NEURON_RADIUS){
+        // Same Neuron
+        return;
+      }
+      for (var n of G.vertices.values()){        
+        if ((x-n.x)*(x-n.x)+(y-n.y)*(y-n.y) <= NEURON_RADIUS*NEURON_RADIUS){
+          FOCUS.connectTo(n, 100);
+          FOCUS = null;
+          break;
+        }
+      }      
+      break;
+    case "Delete":
+      if ((x-FOCUS.x)*(x-FOCUS.x)+(y-FOCUS.y)*(y-FOCUS.y) <= NEURON_RADIUS*NEURON_RADIUS){
+        // Same Neuron, remove vertex
+        FOCUS.delete();
+        FOCUS = null;
+      }
+      for (var n of G.vertices.values()){        
+        if ((x-n.x)*(x-n.x)+(y-n.y)*(y-n.y) <= NEURON_RADIUS*NEURON_RADIUS){
+          // Different Neuron, remove edge
+          FOCUS.removeConnection(n);
+          FOCUS = null;
+          break;
+        }
+      }      
+      break;
+    case "Edit":
+      if ((x-FOCUS.x)*(x-FOCUS.x)+(y-FOCUS.y)*(y-FOCUS.y) <= NEURON_RADIUS*NEURON_RADIUS){
+        // Same Neuron, update vertex
+        FOCUS.updateThreshold();
+        FOCUS = null;
+        break;
+      }
+      for (var n of G.vertices.values()){        
+        if ((x-n.x)*(x-n.x)+(y-n.y)*(y-n.y) <= NEURON_RADIUS*NEURON_RADIUS){
+          // Different Neuron, update edge
+          FOCUS.updateConnection(n);
+          FOCUS = null;
+          break;
+        }
+      }      
+      break;
+    case "Trigger":
+      if ((x-FOCUS.x)*(x-FOCUS.x)+(y-FOCUS.y)*(y-FOCUS.y) <= NEURON_RADIUS*NEURON_RADIUS){
+        // Same Neuron, update val
+        FOCUS.updateVal();
+        FOCUS = null;
+        break;
+      }
+    default:
+      console.log("Unknown Mode:" + MODE)
+  }
+  redrawAll();
+}
+
+
+/* Run function */
 // Intialize Canvas
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 var cw = canvas.width = 800;
 var ch = canvas.height = 600;
+var G = new Graph();
 
-
-
-// Intialize buttons
-document.getElementById("nextButton").onclick = iter;
-
-// // KeyPress Events
-var onKeyPress = function(evt){
-  switch(evt.keyCode) {
-    case 78: // n
-      iter();
-      break;
-    default:
-      console.log(evt.keyCode + "Pressed");
-      break;
-  }
-};
+// Bind
+document.getElementById("nextButton").onclick = next;
+canvas.addEventListener("mousedown", onMousePress, false);
+canvas.addEventListener("mouseup", onMouseRelease, false);
 window.addEventListener('keydown',onKeyPress,false);
 
-// Tests for Graph
-var G = new Graph();
-var N1 = new Neuron("input", 200, 300, 10, G);
-var N2 = new Neuron("connect", 400, 200, 10, G);
-var N3 = new Neuron("connect", 400, 400, 10, G);
-var N4 = new Neuron("output", 600,300, 10, G);
-
-N1.connectTo(N2, 20);
-N2.connectTo(N3, 20);
-N3.connectTo(N1, +20);
-N2.connectTo(N4, 50);
-N4.connectTo(N3, -50);
-//N4.connectTo(N1, -200);
-N1.val = 100;
-for (var n of G.vertices.values()){
-  n.draw(ctx);
-}
+redrawAll();
