@@ -87,6 +87,9 @@ var ctx = canvas.getContext("2d");
 var cw = canvas.width = 800;
 var ch = canvas.height = 600;
 
+// canvas.addEventListener("click", functionTest, false);
+
+
 // Intialize neural network
 var G = new Graph();
 
