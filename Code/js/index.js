@@ -300,7 +300,7 @@ var help = function(){
   // Please note that the introduction webpage is currently running on my
   // own webpage. Future implementations should focus on finding a better
   // way to link the help page to the main page.
-  window.open("https://www.andrew.cmu.edu/user/ail1/");
+  window.open("https://www.andrew.cmu.edu/user/ail1/help/");
 }
 
 // KeyPress Events
