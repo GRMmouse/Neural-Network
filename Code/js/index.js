@@ -1,10 +1,10 @@
 // Global Variables
-var NEURON_RADIUS = 30;
+var NEURON_RADIUS = 40;
 var NEURON_VDROP = -15;
 var ARROW_LEN = 10;
 var ARROW_ANGLE = Math.PI/7;
 var MARGIN_WIDTH = 30;
-var MODE = "Navigation"; // Navigation, Add, Delete, Edit, Trigger
+var MODE = "Add"; // Navigation, Add, Delete, Edit, Trigger
 var FOCUS = null;
 
 // Graph Class
@@ -75,7 +75,13 @@ var Neuron = function (type, x, y, G){
   this.type = type;
   this.x = x;
   this.y = y;
-  this.vth = parseInt(prompt("Please enter a threshold voltage:", '10'));
+  var temp = parseInt(prompt("Please enter a threshold voltage:", '10'));
+  if (!isNaN(temp)){
+    this.vth = temp; 
+  }else{
+    FOCUS = null;
+    return; // Failed to add new neuron
+  }
   this.val = 0;
   this.id = 0;
   this.output = new Map();
@@ -87,6 +93,9 @@ Neuron.prototype = {
   // Methods
   connectTo: function(to){
     var w = prompt("Please enter a weight:", '40');
+    if (isNaN(w) || w==null){
+      return; // Failed to add new edge
+    }
     this.G.addEdge(this, to, parseInt(w));
     if (!this.output.has(to.id)){
       this.output.set(to.id, to);
@@ -151,12 +160,18 @@ Neuron.prototype = {
   },
 
   updateVal: function(){
-    this.val = parseInt(prompt("Please enter an activation voltage:", '100'));
+    var temp = parseInt(prompt("Please enter an activation voltage:", '100'));
+    if (!isNaN(temp)){
+      this.val = temp; 
+    }
     return;
   },
 
   updateThreshold: function(){
-    this.vth = parseInt(prompt("Please enter a threshold voltage:", '10'));
+    var temp = parseInt(prompt("Please enter a threshold voltage:", '10'));
+    if (!isNaN(temp)){
+      this.vth = temp; 
+    }
     return;
   },
 
@@ -174,9 +189,13 @@ Neuron.prototype = {
     ctx.fillStyle = old;
 
     // Draw Vth
-    ctx.font = "20px Arial";
+    ctx.font = "15px Arial";
     ctx.textAlign="center";
-    ctx.fillText(this.vth.toString(),this.x,this.y+5);
+    var textInfo1 = "Vth = "+this.vth.toString();
+    var textInfo2 = "Val = "+this.val.toString();
+    ctx.fillText(textInfo1,this.x,this.y-5);
+    ctx.fillText(textInfo2,this.x,this.y+15);
+
 
     for (var to of this.output.values()) {
       // draw arrows
@@ -272,7 +291,16 @@ var next = function(){
 var clearAll = function(){
   G = new Graph();
   MODE = "Add";
+  FOCUS = null;
   redrawAll();
+}
+
+// Help Button
+var help = function(){
+  // Please note that the introduction webpage is currently running on my
+  // own webpage. Future implementations should focus on finding a better
+  // way to link the help page to the main page.
+  window.open("https://www.andrew.cmu.edu/user/ail1/");
 }
 
 // KeyPress Events
@@ -282,9 +310,9 @@ var onKeyPress = function(evt){
       MODE = "Navigation";
       console.log("Navigation Mode");
       break;
-    case 82: // r
+    case 68: // d
       MODE = "Delete";
-      console.log("Remove Mode");
+      console.log("Delete Mode");
       break;
     case 65: // a
       MODE = "Add";
@@ -327,7 +355,9 @@ var onMousePress = function(evt){
         }
       }
       var N = new Neuron("connect", x, y, G);
-      FOCUS = N;
+      if (G.isValidVertex(N)){
+        FOCUS = N;  
+      }
       break;
     case "Edit":
     case "Trigger":
@@ -361,7 +391,7 @@ var onMouseRelease = function(evt){
       }
       for (var n of G.vertices.values()){        
         if ((x-n.x)*(x-n.x)+(y-n.y)*(y-n.y) <= NEURON_RADIUS*NEURON_RADIUS){
-          FOCUS.connectTo(n, 100);
+          FOCUS.connectTo(n);
           FOCUS = null;
           break;
         }
@@ -418,19 +448,17 @@ var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 var cw = canvas.width = 800;
 var ch = canvas.height = 600;
-<<<<<<< HEAD
 
 // canvas.addEventListener("click", functionTest, false);
 
 
 // Intialize neural network
-=======
->>>>>>> 50837957ea04f7883441cdfb85b102c4a0181602
 var G = new Graph();
 
 // Bind
 document.getElementById("nextButton").onclick = next;
 document.getElementById("clearButton").onclick = clearAll;
+document.getElementById("helpButton").onclick = help;
 canvas.addEventListener("mousedown", onMousePress, false);
 canvas.addEventListener("mouseup", onMouseRelease, false);
 window.addEventListener('keydown',onKeyPress,false);

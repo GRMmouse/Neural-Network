@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>
+            42-631 Project
+        </title>
+        <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 5px;
+        }
+        th {
+            text-align: left;
+        }
+        </style>
+    </head>
+    <body>
+        <h1> Neuron Simulator User's Manual </h1>
+        <h3>Sophia Wilhelmi, Ai Li, Renee Sajedian</h3>
+        <p> Neuron simulator is a web-based interactive learning tool that aims to facilitate learning in neural networks. This tool allows construction of basic neural networks and simulation of network computations. The most important concept to keep in mind is that neurons, as well as neural networks, can be modeled as computational units. The power and function of the neural networks are determined by the topology of the circuit and characteristics of individual neurons.</p>
+        <ul>
+            <li>The image below demonstrates a basic neuron unit. "Vth" represents the threshold voltage of the neuron. "Val" represents the activation level of the neuron.<br>
+            <img src="images/1.png" width="500"><br>
+            The neuron will activate when the activation level is greater than the threshold voltage. An activated neuron will turn yellow and trigger an action potential. The activation level of the neuron will go back to zero once it was activated.<br>
+            <img src="images/2.png" width="500"><br>
+            The arrow between two neurons represent synapses. The number on the arrow represents the "weight" of the synapse, in other words, the influence of the presynaptic neuron on the postsynaptic neuron. Excitatory influences (positive weights) are represented by a green arrow while inhibitory influences (negative weights) are represented by a red arrow.</li>
+            <img src="images/3.png" width="500">
+            <li>When a neuron is activated, it will send an action potential along all of its output connections.<br>
+            <img src="images/4.png" width="500"><br>
+            The weights of the synapses are added to the activation level of the post-synaptic neurons. The activated neuron's activation level resets once the activation. This is known as one iteration of computation and can be achieved by pressing the "Next" button or key N.</li>
+            <img src="images/5.png" width="500">
+            <li>The neuron simulator operates in different modes. The modes are displayed on the top left corner of the interface in blue. The previous examples were in navigation mode. Navigation mode only demonstrates the computation process.
+
+            <ul>
+            <li>Press A to switch to add mode. Add mode is for creating new neurons and new connections between neurons. Click on any empty space to create a neuron. A popup window will ask for the threshold voltage of the new neuron.<br>
+            <img src="images/6.png" width="500"><br>
+            A neuron will appear once a valid threshold voltage is given.<br>
+            <img src="images/7.png" width="500"><br>
+            To add a connection. Click on the presynaptic neuron, move the mouse with left button pressed to the postsynaptic neuron and release the mouse. A popup window will ask for the weight of the synapse.<br>
+            <img src="images/8.png" width="500"><br>
+            A connection will appear once a valid weight is given.<br>
+            <img src="images/9.png" width="500"><br>
+            </li>
+
+            <li>Press D to switch to delete mode. Delete mode is for removing neurons and connections between neurons. To remove a neuron, click on any neuron. The neuron and all its connections will be removed.<br>
+            <img src="images/10.png" width="500"><br>
+            To remove a connection. Click on the postsynaptic neuron, move the mouse with left button pressed to the presynaptic neuron and release the mouse.Notice that delete operation is in the <b>opposite</b> direction to adding a connection.<br>
+            <img src="images/11.png" width="500"><br>
+            </li>
+
+            <li>Press E to switch to edit mode. Edit mode is for changing the threshold voltage of neurons and weights of edges. To modify the threshold voltage of a neuron, click on any neuron. A popup window will ask for the new threshold voltage of the neuron.<br>
+            <img src="images/12.png" width="500"><br>
+            The neuron will be updated once a valid threshold voltage is given.<br>
+            <img src="images/13.png" width="500"><br>
+            To modify a connection. Perform the same operation as adding connection.
+            A popup window will ask for the new weight of the synapse.<br>
+            <img src="images/14.png" width="500"><br>
+            The synapse will be updated once a valid weight is given.<br>
+            <img src="images/15.png" width="500"><br>
+            </li>
+
+            <li>Press T to switch to trigger mode. Trigger mode is for setting the activation levels of the neurons. To modify the activation level of a neuron, click on any neuron. A popup window will ask for the new activation level of the neuron.<br>
+            <img src="images/16.png" width="500"><br>
+            The neuron will be updated once a valid activation level is given.<br>
+            <img src="images/17.png" width="500"><br>
+            </ul>
+            </li>
+
+            <li>Attached below is a table for all the key commands and their corresponding modes and functions.</li>
+            <center>
+                <h4> Key Commands</h4>
+                <table style="width:500">
+                <tr>
+                <th>Key</th>
+                <th>Mode</th>
+                <th>Function</th>
+                </tr>
+                <tr>
+                <td>Space</td>
+                <td>Navigation</td>
+                <td>Display the network structure</td>
+                </tr>
+                <tr>
+                <td>A</td>
+                <td>Add</td>
+                <td>Add neurons and connections between neurons.</td>
+                </tr>
+                <td>D</td>
+                <td>Delete</td>
+                <td>Remove neurons and connections between neurons.</td>
+                </tr>
+                <tr>
+                <td>E</td>
+                <td>Edit</td>
+                <td>Edit the threshold voltage of neurons and weights of synapses.</td>
+                </tr>
+                <tr>
+                <td>T</td>
+                <td>Trigger</td>
+                <td>Change the activation level of neurons.</td>
+                </tr>
+                <tr>
+                <td>N</td>
+                <td>-</td>
+                <td>Perform one iteration of computation. Same as pressing "Next" button.</td>
+                </tr>
+                </table>
+            </center>
+        </ul>
+
+
+
+
+    </body>
+</html>
