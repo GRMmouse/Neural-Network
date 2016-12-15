@@ -303,6 +303,14 @@ var help = function(){
   window.open("https://www.andrew.cmu.edu/user/ail1/help/");
 }
 
+// Practice Button
+var practice = function(){
+  // Please note that the introduction webpage is currently running on my
+  // own webpage. Future implementations should focus on finding a better
+  // way to link the help page to the main page.
+  window.open("https://www.andrew.cmu.edu/user/ail1/practice/");
+}
+
 // KeyPress Events
 var onKeyPress = function(evt){
   switch(evt.keyCode) {
@@ -459,6 +467,7 @@ var G = new Graph();
 document.getElementById("nextButton").onclick = next;
 document.getElementById("clearButton").onclick = clearAll;
 document.getElementById("helpButton").onclick = help;
+document.getElementById("hwButton").onclick = practice;
 canvas.addEventListener("mousedown", onMousePress, false);
 canvas.addEventListener("mouseup", onMouseRelease, false);
 window.addEventListener('keydown',onKeyPress,false);
